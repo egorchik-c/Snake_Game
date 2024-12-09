@@ -21,11 +21,13 @@ section .data
 	db "#########################################", 0xa
 	field_len equ $ - field
 
-	clr db 0x1b, "[2J", 0x1b, "[H", 0
+	clr db 0x1b, "[1J", 0x1b, "[H"
 	clr_len equ $ - clr
 
 	snake_x db 20
 	snake_y db 10
+	prev_x db 20
+	prev_y db 10
 	line db "s"
 	buff db 1, 0
 
@@ -39,7 +41,9 @@ _start:
 move_snake:
  	call read_input
  	call valid_input
+ 	call clear_screen
  	call draw_snake
+ 	call draw_snake_prev
  	call print_field
  	jmp exit
  	
@@ -65,18 +69,26 @@ valid_input:
 	ret
 	
 set_up:
+	mov al, byte [snake_y]
+	mov byte [prev_y], al
 	dec byte [snake_y]
 	ret
 	
 set_down:
+	mov al, byte [snake_y]
+	mov byte [prev_y], al
 	inc byte [snake_y]
 	ret
 	
 set_right:
+	mov al, byte [snake_x]
+	mov byte [prev_x], al
 	dec byte [snake_x]
 	ret
 	
 set_left:
+	mov al, byte [snake_x]
+	mov byte [prev_x], al
 	inc byte [snake_x]
 	ret
 
@@ -90,9 +102,19 @@ draw_snake:
 
 	mov byte [field + eax], byte "O"
 	ret
+	
+draw_snake_prev:
+	movzx eax, byte [prev_y]
+	mov ebx, 42
+	mul ebx
+	movzx ebx, byte [prev_x]
+	add eax, ebx
+
+	
+	mov byte [field + eax], byte " "
+	ret
 
 print_field:
-	call clear_screen
 	mov eax, 4
 	mov ebx, 1
 	mov ecx, field
@@ -102,7 +124,7 @@ print_field:
 
 clear_screen:
 	mov eax, 4
-	mov ebx, 1
+	mov ebx, 2
 	lea ecx, clr
 	mov edx, clr_len
 	int 0x80
