@@ -29,7 +29,7 @@ section .data
 	prev_x db 20
 	prev_y db 10
 	line db "s"
-	buff db 1, 0
+	buff db 1
 
 section .text
 	global _start
@@ -45,7 +45,7 @@ move_snake:
  	call draw_snake
  	call draw_snake_prev
  	call print_field
- 	jmp exit
+ 	jmp move_snake
  	
 
 read_input:
@@ -63,34 +63,48 @@ valid_input:
 	cmp al, "s"
 	je set_down
 	cmp al, "a"
-	je set_right
-	cmp al, "d"
 	je set_left
+	cmp al, "d"
+	je set_right
 	ret
 	
 set_up:
 	mov al, byte [snake_y]
 	mov byte [prev_y], al
 	dec byte [snake_y]
+	call check_field
 	ret
 	
 set_down:
 	mov al, byte [snake_y]
 	mov byte [prev_y], al
 	inc byte [snake_y]
+	call check_field
 	ret
 	
 set_right:
 	mov al, byte [snake_x]
 	mov byte [prev_x], al
-	dec byte [snake_x]
+	inc byte [snake_x]
+	call check_field
 	ret
 	
 set_left:
 	mov al, byte [snake_x]
 	mov byte [prev_x], al
-	inc byte [snake_x]
+	dec byte [snake_x]
+	call check_field
 	ret
+
+check_field:
+	cmp byte [snake_x], 1
+	jl exit
+	cmp byte [snake_x], 40
+	jg exit
+	cmp byte [snake_y], 1
+	jl exit
+	cmp byte [snake_y], 20
+	jg exit
 
 draw_snake:
 	movzx eax, byte [snake_y]
@@ -110,7 +124,6 @@ draw_snake_prev:
 	movzx ebx, byte [prev_x]
 	add eax, ebx
 
-	
 	mov byte [field + eax], byte " "
 	ret
 
