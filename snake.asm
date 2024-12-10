@@ -24,15 +24,19 @@ section .data
 	clr db 0x1b, "[1J", 0x1b, "[H"
 	clr_len equ $ - clr
 
-	snake_xy db 20, 10
-	prev_xy db 20, 10
+	snake_size db 0
+	snake_head db "O"
 	line db "s"
 	buff db 1
 
+section .bss
+	snake_xy resb 100
+	prev_xy resb 100
 section .text
 	global _start
 
 _start:
+	call init_head
 	call draw_snake
 	call print_field
 	
@@ -45,6 +49,14 @@ move_snake:
  	call print_field
  	jmp move_snake
  	
+init_head:
+	lea esi, snake_xy
+	mov byte [esi], 20
+	mov byte [esi + 1], 10
+	lea esi, prev_xy
+	mov byte [esi], 20
+	mov byte [esi + 1], 10
+	ret
 
 read_input:
 	mov eax, 3               
@@ -64,6 +76,8 @@ valid_input:
 	je set_left
 	cmp al, "d"
 	je set_right
+	cmp al, "q"
+	je exit
 	ret
 	
 set_up:
@@ -120,7 +134,9 @@ draw_snake:
     movzx ebx, byte [snake_xy]
     add eax, ebx 
     
-    mov byte [field + eax], byte "O"
+	lea ebx, byte [snake_head]
+	mov dl, byte [ebx]
+    mov byte [field + eax], dl
     ret
 
 draw_snake_prev:
