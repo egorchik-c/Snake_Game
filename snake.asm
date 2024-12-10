@@ -24,10 +24,8 @@ section .data
 	clr db 0x1b, "[1J", 0x1b, "[H"
 	clr_len equ $ - clr
 
-	snake_x db 20
-	snake_y db 10
-	prev_x db 20
-	prev_y db 10
+	snake_xy db 20, 10
+	prev_xy db 20, 10
 	line db "s"
 	buff db 1
 
@@ -69,63 +67,70 @@ valid_input:
 	ret
 	
 set_up:
-	mov al, byte [snake_y]
-	mov byte [prev_y], al
-	dec byte [snake_y]
-	call check_field
-	ret
-	
+    mov al, [snake_xy + 1]
+    mov [prev_xy + 1], al
+    dec byte [snake_xy + 1]
+    mov al, [snake_xy] 
+    mov [prev_xy], al 
+    call check_field
+    ret
+
 set_down:
-	mov al, byte [snake_y]
-	mov byte [prev_y], al
-	inc byte [snake_y]
-	call check_field
-	ret
-	
-set_right:
-	mov al, byte [snake_x]
-	mov byte [prev_x], al
-	inc byte [snake_x]
-	call check_field
-	ret
-	
+    mov al, [snake_xy + 1]
+    mov [prev_xy + 1], al
+    inc byte [snake_xy + 1]
+    mov al, [snake_xy] 
+    mov [prev_xy], al 
+    call check_field
+    ret
+
 set_left:
-	mov al, byte [snake_x]
-	mov byte [prev_x], al
-	dec byte [snake_x]
-	call check_field
-	ret
+    mov al, [snake_xy]
+    mov [prev_xy], al
+    dec byte [snake_xy]
+    mov al, [snake_xy + 1] 
+    mov [prev_xy + 1], al 
+    call check_field
+    ret
+
+set_right:
+    mov al, [snake_xy]
+    mov [prev_xy], al
+    inc byte [snake_xy]
+    mov al, [snake_xy + 1] 
+    mov [prev_xy + 1], al 
+    call check_field
+    ret
 
 check_field:
-	cmp byte [snake_x], 1
+	cmp byte [snake_xy], 1
 	jl exit
-	cmp byte [snake_x], 40
+	cmp byte [snake_xy], 40
 	jg exit
-	cmp byte [snake_y], 1
+	cmp byte [snake_xy + 1], 1
 	jl exit
-	cmp byte [snake_y], 20
+	cmp byte [snake_xy + 1], 20
 	jg exit
 
 draw_snake:
-	movzx eax, byte [snake_y]
-	mov ebx, 42
-	mul ebx
-	movzx ebx, byte [snake_x]
-	add eax, ebx
+    
+    movzx eax, byte [snake_xy + 1] 
+    mov ebx, 42
+    mul ebx
+    movzx ebx, byte [snake_xy]
+    add eax, ebx 
+    
+    mov byte [field + eax], byte "O"
+    ret
 
-
-	mov byte [field + eax], byte "O"
-	ret
-	
 draw_snake_prev:
-	movzx eax, byte [prev_y]
-	mov ebx, 42
-	mul ebx
-	movzx ebx, byte [prev_x]
-	add eax, ebx
-
-	mov byte [field + eax], byte " "
-	ret
+    movzx eax, byte [prev_xy + 1] 
+    mov ebx, 42
+    mul ebx
+    movzx ebx, byte [prev_xy]
+    add eax, ebx
+   	mov byte [field + eax], byte " "
+    ret
 
 print_field:
 	mov eax, 4
