@@ -85,52 +85,45 @@ valid_input:
 	je exit
 	ret
 	
-set_up:
-    mov al, [snake_xy + 1]
-    mov [prev_xy + 1], al
-    dec byte [snake_xy + 1]
-    mov al, [snake_xy] 
-    mov [prev_xy], al 
-    call check_field
-    ret
+update_body:
+    movzx edi, byte [snake_size] 
+    dec edi
+    xor ecx, ecx 
+
+	update_body_loop:
+		sub edi, ecx
+		mov al, [snake_xy + edi * 2]
+		mov [snake_xy + (edi + 1) * 2], al
+		mov al, [snake_xy + edi * 2 + 1]
+		mov [snake_xy + (edi + 1) * 2 + 1], al
+
+		inc ecx
+		cmp ecx, edi
+		jle update_body_loop
+	ret
 
 set_down:
-    movzx edi, byte [snake_size]
-	xor ecx, ecx
+    call update_body 
+    inc byte [snake_xy + 1] 
+    call check_field 
+    ret
 
-	set_down_loop:
-		inc byte [snake_xy + ecx * 2 + 1]
-		inc ecx
-		
-		cmp edi, ecx
-		jg set_down_loop
-	
-	movzx edi, byte [prev_size]
-	mov al, byte [snake_xy + ecx * 2]
-	mov byte [prev_xy + edi * 2], al
-	mov al, byte [snake_xy + ecx * 2 + 1]
-	mov byte [prev_xy + edi * 2 + 1], al
-
-
-    call check_field
+set_up:
+    call update_body 
+    dec byte [snake_xy + 1] 
+    call check_field 
     ret
 
 set_left:
-    mov al, [snake_xy]
-    mov [prev_xy], al
-    dec byte [snake_xy]
-    mov al, [snake_xy + 1] 
-    mov [prev_xy + 1], al 
-    call check_field
+    call update_body 
+    dec byte [snake_xy] 
+    call check_field 
     ret
 
 set_right:
-    mov al, [snake_xy]
-    mov [prev_xy], al
-    inc byte [snake_xy]
-    mov al, [snake_xy + 1] 
-    mov [prev_xy + 1], al 
-    call check_field
+    call update_body 
+    inc byte [snake_xy] 
+    call check_field 
     ret
 
 check_field:
