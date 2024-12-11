@@ -25,6 +25,7 @@ section .data
 	clr_len equ $ - clr
 
 	snake_size db 3
+	prev_size db 0
 	line db "s"
 	buff db 1
 
@@ -44,7 +45,7 @@ move_snake:
  	call valid_input
  	call clear_screen
  	call draw_snake
- 	call draw_snake_prev
+ 	;call draw_snake_prev
  	call print_field
  	jmp move_snake
  	
@@ -59,7 +60,7 @@ init_head:
 
 	lea esi, prev_xy
 	mov byte [esi], 20
-	mov byte [esi + 1], 10
+	mov byte [esi + 1], 8
 	ret               
 
 read_input:
@@ -94,11 +95,23 @@ set_up:
     ret
 
 set_down:
-    mov al, [snake_xy + 1]
-    mov [prev_xy + 1], al
-    inc byte [snake_xy + 1]
-    mov al, [snake_xy] 
-    mov [prev_xy], al 
+    movzx edi, byte [snake_size]
+	xor ecx, ecx
+
+	set_down_loop:
+		inc byte [snake_xy + ecx * 2 + 1]
+		inc ecx
+		
+		cmp edi, ecx
+		jg set_down_loop
+	
+	movzx edi, byte [prev_size]
+	mov al, byte [snake_xy + ecx * 2]
+	mov byte [prev_xy + edi * 2], al
+	mov al, byte [snake_xy + ecx * 2 + 1]
+	mov byte [prev_xy + edi * 2 + 1], al
+
+
     call check_field
     ret
 
@@ -151,13 +164,18 @@ draw_snake:
     
 
 draw_snake_prev:
-    movzx eax, byte [prev_xy + 1] 
-    mov ebx, 42
-    mul ebx
-    movzx ebx, byte [prev_xy]
-    add eax, ebx
-   	mov byte [field + eax], byte " "
-    ret
+	movzx edi, byte [prev_size]
+	
+		lea esi, prev_xy
+		movzx eax, byte [esi + edi * 2 + 1]
+		mov ebx, 42
+		mul ebx
+		movzx ebx, byte [esi + edi * 2]
+		add eax, ebx
+		mov byte [field + eax], " "
+		
+
+	ret
 
 print_field:
 	mov eax, 4
