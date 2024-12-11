@@ -24,8 +24,7 @@ section .data
 	clr db 0x1b, "[1J", 0x1b, "[H"
 	clr_len equ $ - clr
 
-	snake_size db 0
-	snake_head db "O"
+	snake_size db 3
 	line db "s"
 	buff db 1
 
@@ -53,10 +52,15 @@ init_head:
 	lea esi, snake_xy
 	mov byte [esi], 20
 	mov byte [esi + 1], 10
+	mov byte [esi + 2], 20
+	mov byte [esi + 3], 9
+	mov byte [esi + 4], 20
+	mov byte [esi + 5], 8
+
 	lea esi, prev_xy
 	mov byte [esi], 20
 	mov byte [esi + 1], 10
-	ret
+	ret               
 
 read_input:
 	mov eax, 3               
@@ -127,17 +131,24 @@ check_field:
 	jg exit
 
 draw_snake:
+    movzx edi, byte [snake_size]
+	xor ecx, ecx
+
+	draw_loop:
+		lea esi, snake_xy
+		movzx eax, byte [esi + ecx * 2 + 1]
+		mov ebx, 42
+		mul ebx
+		movzx ebx, byte [esi + ecx * 2]
+		add eax, ebx
+		mov byte [field + eax], "O"
+		
+		inc ecx
+		cmp edi, ecx
+		jg draw_loop
+
+	ret	
     
-    movzx eax, byte [snake_xy + 1] 
-    mov ebx, 42
-    mul ebx
-    movzx ebx, byte [snake_xy]
-    add eax, ebx 
-    
-	lea ebx, byte [snake_head]
-	mov dl, byte [ebx]
-    mov byte [field + eax], dl
-    ret
 
 draw_snake_prev:
     movzx eax, byte [prev_xy + 1] 
