@@ -25,13 +25,14 @@ section .data
 	clr_len equ $ - clr
 
 	snake_size db 3
-	prev_size db 0
+	prev_xy db 20, 8
+
 	line db "s"
 	buff db 1
 
 section .bss
 	snake_xy resb 100
-	prev_xy resb 100
+
 section .text
 	global _start
 
@@ -45,7 +46,7 @@ move_snake:
  	call valid_input
  	call clear_screen
  	call draw_snake
- 	;call draw_snake_prev
+ 	call draw_snake_prev
  	call print_field
  	jmp move_snake
  	
@@ -58,9 +59,6 @@ init_head:
 	mov byte [esi + 4], 20
 	mov byte [esi + 5], 8
 
-	lea esi, prev_xy
-	mov byte [esi], 20
-	mov byte [esi + 1], 8
 	ret               
 
 read_input:
@@ -86,45 +84,47 @@ valid_input:
 	ret
 	
 update_body:
-    movzx edi, byte [snake_size] 
-    dec edi
-    xor ecx, ecx 
+    movzx ecx, byte [snake_size] 
+    ;dec ecx
+    lea esi, snake_xy
 
-	update_body_loop:
-		sub edi, ecx
-		mov al, [snake_xy + edi * 2]
-		mov [snake_xy + (edi + 1) * 2], al
-		mov al, [snake_xy + edi * 2 + 1]
-		mov [snake_xy + (edi + 1) * 2 + 1], al
+update_loop:
+    movzx eax, byte [esi + ecx * 2]
+    movzx ebx, byte [esi + ecx * 2 - 2]
+    mov byte [esi + ecx * 2], bl
+    
+    movzx eax, byte [esi + ecx * 2 + 1]
+    movzx ebx, byte [esi + ecx * 2 - 1]
+    mov byte [esi + ecx * 2 + 1], bl
 
-		inc ecx
-		cmp ecx, edi
-		jle update_body_loop
-	ret
+    dec ecx
+    jnz update_loop
+    ret
 
 set_down:
-    call update_body 
-    inc byte [snake_xy + 1] 
-    call check_field 
+    call update_body
+    inc byte [snake_xy + 1]
+    call check_field
     ret
 
 set_up:
-    call update_body 
-    dec byte [snake_xy + 1] 
-    call check_field 
+    call update_body
+    dec byte [snake_xy + 1]
+    call check_field
     ret
 
 set_left:
-    call update_body 
-    dec byte [snake_xy] 
-    call check_field 
+    call update_body
+    dec byte [snake_xy]
+    call check_field
     ret
 
 set_right:
-    call update_body 
-    inc byte [snake_xy] 
-    call check_field 
+    call update_body
+    inc byte [snake_xy]
+    call check_field
     ret
+
 
 check_field:
 	cmp byte [snake_xy], 1
@@ -138,6 +138,7 @@ check_field:
 
 draw_snake:
     movzx edi, byte [snake_size]
+	dec edi
 	xor ecx, ecx
 
 	draw_loop:
@@ -150,25 +151,25 @@ draw_snake:
 		mov byte [field + eax], "O"
 		
 		inc ecx
-		cmp edi, ecx
-		jg draw_loop
+		cmp ecx, edi
+		jle draw_loop
 
 	ret	
     
 
 draw_snake_prev:
-	movzx edi, byte [prev_size]
-	
-		lea esi, prev_xy
-		movzx eax, byte [esi + edi * 2 + 1]
-		mov ebx, 42
-		mul ebx
-		movzx ebx, byte [esi + edi * 2]
-		add eax, ebx
-		mov byte [field + eax], " "
-		
+    movzx ecx, byte [snake_size]
+    ;dec ecx
+    lea esi, snake_xy
 
-	ret
+    
+    movzx eax, byte [esi + ecx * 2 + 1]
+    mov ebx, 42
+    mul ebx
+    movzx ebx, byte [esi + ecx * 2]
+    add eax, ebx
+    mov byte [field + eax], " " 
+    ret
 
 print_field:
 	mov eax, 4
