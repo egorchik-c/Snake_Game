@@ -29,6 +29,7 @@ section .data
 	apple_x db 30
 	apple_y db 7
 	apple_sign db "@"
+	seed dd 123456789
 
 	line db "s"
 	buff db 1
@@ -178,6 +179,7 @@ check_apple:
 	jne not_eaten
 	
 	call grow_snake
+	call place_apple
 
 	not_eaten:
 		ret
@@ -187,11 +189,9 @@ grow_snake:
     movzx eax, byte [snake_size]
     dec eax
 
-    
     movzx ebx, byte [esi + eax * 2]
     movzx ecx, byte [esi + eax * 2 + 1]
 
-    
     inc byte [snake_size]
 
     movzx eax, byte [snake_size]
@@ -203,23 +203,32 @@ grow_snake:
 
 
 place_apple:
-    mov eax, 42
-    call random
-    add al, 1
-    mov byte [apple_x], al
+    mov eax, [seed]
+    mov ecx, 1664525
+    mul ecx
+    add eax, 1013904223
+    and eax, 0xFFFFFFFF
+    mov [seed], eax
 
-    
-    mov eax, 20
-    call random
-    add al, 1
-    mov byte [apple_y], al
-    ret
-
-random:
-	mov eax, 1
+    mov ecx, 38
     xor edx, edx
-    xor ebx, ebx
-    int 0x80
+    div ecx
+    add dl, 1
+    mov [apple_x], dl
+
+    mov eax, [seed]
+    mov ecx, 1664525
+    mul ecx
+    add eax, 1013904223
+    and eax, 0xFFFFFFFF
+    mov [seed], eax
+
+    mov ecx, 18
+    xor edx, edx
+    div ecx
+    add dl, 1
+    mov [apple_y], dl
+
     ret
 
 draw_apple:
