@@ -51,6 +51,7 @@ _start:
 move_snake:
  	call read_input
  	call valid_input
+	call check_body
  	call clear_screen
  	call draw_snake
  	call draw_snake_prev
@@ -241,6 +242,31 @@ draw_apple:
     mov byte [field + eax], dl
     ret
 
+check_body:
+	movzx ecx, byte [snake_size]
+	dec ecx
+	lea esi, snake_xy
+	movzx eax, byte [snake_xy]
+	movzx ebx, byte [snake_xy + 1]
+	
+
+	check_body_loop:
+		movzx edx, byte [esi + ecx * 2]
+		cmp eax, edx
+		jne check_body_next
+		movzx edx, byte [esi + ecx * 2 + 1]
+		cmp ebx, edx
+		jne check_body_next
+
+		jmp exit
+
+
+	check_body_next:
+		dec ecx
+		cmp ecx, 1
+		jne check_body_loop
+		ret
+
 check_field:
 	cmp byte [snake_xy], 1
 	jl exit
@@ -271,7 +297,6 @@ draw_snake:
 
 	ret	
     
-
 draw_snake_prev:
     movzx eax, byte [prev_y]
     mov ebx, 42
