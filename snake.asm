@@ -35,7 +35,15 @@ section .data
     direction db "s"
 
     delay_sec dd 0
-    delay_nsec dd 200000000
+    delay_nsec dd 100000000
+
+    termios:        times 36 db 0
+	stdin:          equ 0
+	ICANON:         equ 1<<1
+	ECHO:           equ 1<<3
+    VMIN:	equ 6
+    VTIME:	equ 5
+    OFFSET:	equ 17
 
 section .bss
     snake_xy resb 100
@@ -47,12 +55,13 @@ section .text
     global _start
 
 _start:
+    call echo_off
+    call canonical_off
     call init_head
     call draw_snake
     call print_field
 
 move_snake:
-    ;call check_input
 	call read_input
     call valid_input
     call move_in_direction
@@ -76,6 +85,63 @@ init_head:
     mov byte [prev_y], 8
     ret
 
+canonical_off:		
+    call read_stdin_termios
+    
+    mov eax, ICANON
+    not eax
+    and [termios + 12], eax
+    
+    mov al, 0
+    mov [termios + OFFSET + VMIN], al
+    mov [termios + OFFSET + VTIME], al
+
+    call write_stdin_termios
+    ret
+
+echo_off:
+    call read_stdin_termios
+    
+    mov eax, ECHO
+    not eax
+    and [termios + 12], eax
+    
+
+    call write_stdin_termios
+    ret
+
+canonical_on:
+    call read_stdin_termios
+
+    or dword [termios + 12], ICANON
+
+    call write_stdin_termios
+    ret
+
+echo_on:
+    call read_stdin_termios
+
+    or dword [termios + 12], ECHO
+
+    call write_stdin_termios
+    ret
+
+read_stdin_termios:
+    mov eax, 0x36
+    mov ebx, stdin
+    mov ecx, 0x5401
+    mov edx, termios
+    int 0x80
+    ret
+
+write_stdin_termios:
+    mov eax, 0x36
+    mov ebx, stdin
+    mov ecx, 0x5402
+    mov edx, termios
+    int 0x80
+    ret
+
 read_input:
     mov eax, 3
     mov ebx, 0
@@ -85,9 +151,9 @@ read_input:
     ret
 
 check_input:
-    mov eax, 5
+    mov eax, 3
     mov ebx, 0
-    lea ecx, [esp]
+    lea ecx, [buff]
     mov edx, 0
     int 0x80
     test eax, eax
@@ -258,11 +324,11 @@ draw_apple:
 check_field:
     cmp byte [snake_xy], 1
     jl exit
-    cmp byte [snake_xy], 40
+    cmp byte [snake_xy], 39
     jg exit
     cmp byte [snake_xy + 1], 1
     jl exit
-    cmp byte [snake_xy + 1], 20
+    cmp byte [snake_xy + 1], 18
     jg exit
     ret
 
@@ -316,6 +382,8 @@ delay:
     ret
 
 exit:
+    call echo_on
+    call canonical_on
     mov eax, 1
     xor ebx, ebx
     int 0x80
