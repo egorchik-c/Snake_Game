@@ -40,7 +40,6 @@ section .data
     termios times 36 db 0
 	stdin equ 0
 	ICANON equ 1<<1
-	ECHO equ 1<<3
     VMIN equ 6
     VTIME equ 5
     OFFSET equ 17
@@ -55,7 +54,6 @@ section .text
     global _start
 
 _start:
-    call echo_off
     call canonical_off
     call init_head
     call draw_snake
@@ -99,29 +97,10 @@ canonical_off:
     call write_stdin_termios
     ret
 
-echo_off:
-    call read_stdin_termios
-    
-    mov eax, ECHO
-    not eax
-    and [termios + 12], eax
-    
-
-    call write_stdin_termios
-    ret
-
 canonical_on:
     call read_stdin_termios
 
     or dword [termios + 12], ICANON
-
-    call write_stdin_termios
-    ret
-
-echo_on:
-    call read_stdin_termios
-
-    or dword [termios + 12], ECHO
 
     call write_stdin_termios
     ret
@@ -410,7 +389,6 @@ delay:
     ret
 
 exit:
-    call echo_on
     call canonical_on
     mov eax, 1
     xor ebx, ebx
