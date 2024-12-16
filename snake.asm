@@ -37,13 +37,13 @@ section .data
     delay_sec dd 0
     delay_nsec dd 100000000
 
-    termios:        times 36 db 0
-	stdin:          equ 0
-	ICANON:         equ 1<<1
-	ECHO:           equ 1<<3
-    VMIN:	equ 6
-    VTIME:	equ 5
-    OFFSET:	equ 17
+    termios times 36 db 0
+	stdin equ 0
+	ICANON equ 1<<1
+	ECHO equ 1<<3
+    VMIN equ 6
+    VTIME equ 5
+    OFFSET equ 17
 
 section .bss
     snake_xy resb 100
@@ -160,8 +160,8 @@ check_input:
     jle no_input
     call read_input
     call valid_input
-no_input:
-    ret
+    no_input:
+        ret
 
 valid_input:
     mov al, byte [buff]
@@ -239,14 +239,14 @@ update_body:
     movzx ecx, byte [snake_size]
     dec ecx
     lea esi, snake_xy
-update_loop:
-    movzx eax, byte [esi + ecx * 2 - 2]
-    mov byte [esi + ecx * 2], al
-    movzx eax, byte [esi + ecx * 2 - 1]
-    mov byte [esi + ecx * 2 + 1], al
-    dec ecx
-    jnz update_loop
-    call head_update
+    update_loop:
+        movzx eax, byte [esi + ecx * 2 - 2]
+        mov byte [esi + ecx * 2], al
+        movzx eax, byte [esi + ecx * 2 - 1]
+        mov byte [esi + ecx * 2 + 1], al
+        dec ecx
+        jnz update_loop
+        call head_update
     ret
 
 head_update:
@@ -270,8 +270,8 @@ check_apple:
     jne not_eaten
     call grow_snake
     call place_apple
-not_eaten:
-    ret
+    not_eaten:
+        ret
 
 grow_snake:
     lea esi, snake_xy
@@ -288,9 +288,9 @@ grow_snake:
 
 place_apple:
     mov eax, [seed]
-    mov ecx, 1664525
+    mov ecx, 12773
     mul ecx
-    add eax, 1013904223
+    add eax, 2836
     and eax, 0xFFFFFFFF
     mov [seed], eax
     mov ecx, 38
@@ -299,9 +299,9 @@ place_apple:
     add dl, 1
     mov [apple_x], dl
     mov eax, [seed]
-    mov ecx, 1664525
+    mov ecx, 12773
     mul ecx
-    add eax, 1013904223
+    add eax, 2836
     and eax, 0xFFFFFFFF
     mov [seed], eax
     mov ecx, 18
