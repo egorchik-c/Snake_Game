@@ -161,7 +161,7 @@ check_input:
     call read_input
     call valid_input
     no_input:
-        ret
+    ret
 
 valid_input:
     mov al, byte [buff]
@@ -199,6 +199,7 @@ set_down:
     inc byte [snake_xy + 1]
     call check_apple
     call check_field
+    call check_body
     ret
 
 set_up:
@@ -207,6 +208,7 @@ set_up:
     dec byte [snake_xy + 1]
     call check_apple
     call check_field
+    call check_body
     ret
 
 set_left:
@@ -215,6 +217,7 @@ set_left:
     dec byte [snake_xy]
     call check_apple
     call check_field
+    call check_body
     ret
 
 set_right:
@@ -223,6 +226,7 @@ set_right:
     inc byte [snake_xy]
     call check_apple
     call check_field
+    call check_body
     ret
 
 update_prev:
@@ -321,6 +325,30 @@ draw_apple:
     mov byte [field + eax], dl
     ret
 
+check_body:
+    movzx ecx, byte [snake_size]
+    dec ecx
+    lea esi, snake_xy
+    movzx eax, byte [snake_xy]
+    movzx ebx, byte [snake_xy + 1]
+
+    check_body_loop:
+        movzx edx, byte [esi + ecx * 2]
+        cmp eax, edx
+        jne check_body_next
+        movzx edx, byte [esi + ecx * 2 + 1]
+        cmp ebx, edx
+        jne check_body_next
+
+        jmp exit
+
+    check_body_next:
+        dec ecx
+        cmp ecx, 1
+        jne check_body_loop
+        ret
+
+
 check_field:
     cmp byte [snake_xy], 1
     jl exit
@@ -366,7 +394,7 @@ print_field:
     mov edx, field_len
     int 0x80
     ret
-
+    
 clear_screen:
     mov eax, 4
     mov ebx, 2
