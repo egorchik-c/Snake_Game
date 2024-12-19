@@ -24,7 +24,7 @@ section .data
     clr db 0x1b, "[1J", 0x1b, "[H"
     clr_len equ $ - clr
 
-    snake_size db 3
+    snake_size db 4
     apple_x db 30
     apple_y db 7
     apple_sign db "@"
@@ -79,8 +79,11 @@ init_head:
     mov byte [esi + 3], 9
     mov byte [esi + 4], 20
     mov byte [esi + 5], 8
+    mov byte [esi + 6], 20
+    mov byte [esi + 7], 7
+
     mov byte [prev_x], 20
-    mov byte [prev_y], 8
+    mov byte [prev_y], 7
     ret
 
 canonical_off:		
